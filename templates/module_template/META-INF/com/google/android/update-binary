@@ -1,0 +1,8 @@
+#!/sbin/sh
+#################
+# Magisk Module Package
+#################
+UMASK=022
+OUTFD=$2
+ZIPFILE=$3
+exec /bin/sh -c "$ZIPFILE"

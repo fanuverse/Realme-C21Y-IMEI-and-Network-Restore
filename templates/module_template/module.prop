@@ -1,0 +1,6 @@
+id=realme_c21y_imei_restore
+name=Realme C21Y IMEI & Telephony Permanent Restore
+version=v1.0
+versionCode=100
+author=fanuverse
+description=Permanently restores factory IMEI 1 and IMEI 2, unlocks RIL, and activates cellular voice/data for Realme C21Y (Unisoc T610).
