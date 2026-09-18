@@ -269,14 +269,29 @@ def flash_to_device(adb_bin: str, output_dir: str):
     if root_check != "0":
         raise RuntimeError("Root (su) permission denied on device! Grant root access in APatch/Magisk.")
     print(f"{GREEN}[+] Root access verified (UID 0).{RESET}")
+
+    # Dynamically find the correct partition directory for this ROM
+    detect_path_cmd = (
+        "if [ -d /dev/block/bootdevice/by-name ]; then "
+        "echo /dev/block/bootdevice/by-name; "
+        "elif [ -d /dev/block/by-name ]; then "
+        "echo /dev/block/by-name; "
+        "else "
+        "find /dev/block -name by-name 2>/dev/null | head -n 1; "
+        "fi"
+    )
+    by_name = run_adb_cmd(adb_bin, ["shell", f"su -c '{detect_path_cmd}'"]).strip()
+    if not by_name:
+        raise RuntimeError("Could not find a valid partition 'by-name' directory on device!")
+    print(f"{GREEN}[+] Detected partition directory: {by_name}{RESET}")
     
     # 1. Back up existing partitions
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_dir = f"/sdcard/imei_backup_{timestamp}"
     print(f"{YELLOW}[*] Backing up current NVRAM & modem partitions to {backup_dir}...{RESET}")
     run_adb_cmd(adb_bin, ["shell", f"su -c 'mkdir -p {backup_dir} && "
-                                  f"dd if=/dev/block/bootdevice/by-name/l_fixnv1_a of={backup_dir}/l_fixnv1_a.bin bs=1M && "
-                                  f"dd if=/dev/block/bootdevice/by-name/l_modem_a of={backup_dir}/l_modem_a.bin bs=1M'"])
+                                  f"dd if={by_name}/l_fixnv1_a of={backup_dir}/l_fixnv1_a.bin bs=1M && "
+                                  f"dd if={by_name}/l_modem_a of={backup_dir}/l_modem_a.bin bs=1M'"])
     print(f"{GREEN}[+] Backup completed safely on device storage.{RESET}")
     
     # 2. Push patched files to device
@@ -285,18 +300,18 @@ def flash_to_device(adb_bin: str, output_dir: str):
     run_adb_cmd(adb_bin, ["push", os.path.join(output_dir, "l_modem_patched.bin"), "/data/local/tmp/l_modem_patched.bin"])
     run_adb_cmd(adb_bin, ["push", os.path.join(output_dir, "Realme-C21Y-IMEI-Restore.zip"), "/data/local/tmp/Realme-C21Y-IMEI-Restore.zip"])
     
-    # 3. Flash partitions
+    # 3. Flash partitions using the detected path
     print(f"{YELLOW}[*] Writing patched baseband modem & clean NVRAM to block partitions...{RESET}")
     flash_cmd = (
         "su -c '"
-        "dd if=/data/local/tmp/l_fixnv1.bin of=/dev/block/bootdevice/by-name/l_fixnv1_a bs=1M && "
-        "dd if=/data/local/tmp/l_fixnv1.bin of=/dev/block/bootdevice/by-name/l_fixnv1_b bs=1M && "
-        "dd if=/data/local/tmp/l_fixnv1.bin of=/dev/block/bootdevice/by-name/l_fixnv2_a bs=1M && "
-        "dd if=/data/local/tmp/l_fixnv1.bin of=/dev/block/bootdevice/by-name/l_fixnv2_b bs=1M && "
-        "dd if=/data/local/tmp/l_modem_patched.bin of=/dev/block/bootdevice/by-name/l_modem_a bs=1M && "
-        "dd if=/data/local/tmp/l_modem_patched.bin of=/dev/block/bootdevice/by-name/l_modem_b bs=1M && "
-        "dd if=/dev/zero of=/dev/block/bootdevice/by-name/l_runtimenv1 bs=1M count=2 2>/dev/null; "
-        "dd if=/dev/zero of=/dev/block/bootdevice/by-name/l_runtimenv2 bs=1M count=2 2>/dev/null; "
+        f"dd if=/data/local/tmp/l_fixnv1.bin of={by_name}/l_fixnv1_a bs=1M && "
+        f"dd if=/data/local/tmp/l_fixnv1.bin of={by_name}/l_fixnv1_b bs=1M && "
+        f"dd if=/data/local/tmp/l_fixnv1.bin of={by_name}/l_fixnv2_a bs=1M && "
+        f"dd if=/data/local/tmp/l_fixnv1.bin of={by_name}/l_fixnv2_b bs=1M && "
+        f"dd if=/data/local/tmp/l_modem_patched.bin of={by_name}/l_modem_a bs=1M && "
+        f"dd if=/data/local/tmp/l_modem_patched.bin of={by_name}/l_modem_b bs=1M && "
+        f"dd if=/dev/zero of={by_name}/l_runtimenv1 bs=1M count=2 2>/dev/null; "
+        f"dd if=/dev/zero of={by_name}/l_runtimenv2 bs=1M count=2 2>/dev/null; "
         "mkdir -p /data/adb/modules/realme_c21y_imei_restore/vendor/lib64 && "
         "mkdir -p /data/adb/modules/realme_c21y_imei_restore/system/vendor/lib64 && "
         "unzip -o /data/local/tmp/Realme-C21Y-IMEI-Restore.zip -d /data/adb/modules/realme_c21y_imei_restore && "
