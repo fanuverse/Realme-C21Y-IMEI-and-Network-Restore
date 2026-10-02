@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<apns version="8">
+  <!-- Ethio Telecom (Ethiopia) -->
+  <apn carrier="Ethio Telecom"
+      carrier_id="681"
+      mcc="636"
+      mnc="01"
+      apn="etc.com"
+      type="default,ia,supl,dun,hipri"
+      protocol="IP"
+      roaming_protocol="IP"
+  />
+  <apn carrier="Ethio Telecom Internet"
+      carrier_id="681"
+      mcc="636"
+      mnc="01"
+      apn="internet"
+      type="default,ia,supl,dun,hipri"
+      protocol="IP"
+      roaming_protocol="IP"
+  />
+
+  <!-- Safaricom Ethiopia -->
+  <apn carrier="Safaricom Ethiopia"
+      carrier_id="2569"
+      mcc="636"
+      mnc="02"
+      apn="safaricom"
+      type="default,ia,supl,dun,hipri"
+      protocol="IP"
+      roaming_protocol="IP"
+  />
+</apns>

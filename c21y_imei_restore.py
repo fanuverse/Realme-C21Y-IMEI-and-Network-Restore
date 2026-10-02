@@ -239,8 +239,8 @@ def package_apatch_module(output_zip: str, patched_ril: bytes, module_template_d
                     full_p = os.path.join(root, f)
                     rel_p = os.path.relpath(full_p, module_template_dir)
                     z.write(full_p, arcname=rel_p)
-        # Copy extra template assets (e.g. vendor/etc/audio_route.xml)
-        for sub in ["vendor", "system"]:
+        # Copy extra template assets (e.g. vendor/etc/audio_route.xml, apns-conf.xml)
+        for sub in ["vendor", "system", "product"]:
             sub_path = os.path.join(module_template_dir, sub)
             if os.path.exists(sub_path):
                 for root, _, files in os.walk(sub_path):
@@ -329,6 +329,12 @@ def flash_to_device(adb_bin: str, output_dir: str):
         "chcon -R u:object_r:vendor_file:s0 /data/adb/modules/realme_c21y_imei_restore && "
         "chcon -R u:object_r:vendor_configs_file:s0 /data/adb/modules/realme_c21y_imei_restore/vendor/etc 2>/dev/null; "
         "chcon -R u:object_r:vendor_configs_file:s0 /data/adb/modules/realme_c21y_imei_restore/system/vendor/etc 2>/dev/null; "
+        "content update --uri content://telephony/carriers --bind protocol:s:IP --bind roaming_protocol:s:IP --bind type:s:\"default,ia,supl,dun,hipri\" --where \"numeric=\\\"63601\\\"\" 2>/dev/null; "
+        "content update --uri content://telephony/carriers --bind protocol:s:IP --bind roaming_protocol:s:IP --bind type:s:\"default,ia,supl,dun,hipri\" --where \"numeric=\\\"63602\\\"\" 2>/dev/null; "
+        "settings put global mobile_data_always_on 1 2>/dev/null; "
+        "settings put global data_stall_recovery_on_bad_network 1 2>/dev/null; "
+        "settings put global restricted_networking_mode 0 2>/dev/null; "
+        "setprop persist.vendor.radio.fd.disable 1 2>/dev/null; "
         "sync'"
     )
     run_adb_cmd(adb_bin, ["shell", flash_cmd])

@@ -16,6 +16,32 @@ settings put global multi_sim_data_call 1 2>/dev/null
 settings put global mobile_data1 1 2>/dev/null
 settings put global mobile_data 1 2>/dev/null
 
+# Cellular Mobility, Fast Dormancy & Data Stall Recovery
+settings put global mobile_data_always_on 1 2>/dev/null
+settings put global data_stall_recovery_on_bad_network 1 2>/dev/null
+settings put global restricted_networking_mode 0 2>/dev/null
+
+# Disable Unisoc modem fast dormancy (prevents dropping PDP context on idle/commute)
+resetprop -n persist.vendor.radio.fd.disable 1 2>/dev/null
+resetprop -n persist.vendor.radio.fastdormancy false 2>/dev/null
+resetprop -n ro.telephony.default_network 9 2>/dev/null
+resetprop -n telephony.lteOnCdmaDevice 0 2>/dev/null
+
+# Fix Ethio Telecom & Safaricom APN in telephony provider:
+# Enforces pure IPv4 protocol to prevent 4G IPv6 routing blackholes and adds 'ia' (Initial Attach)
+# to prevent Packet Switched (PS) data detachment during cell tower mobility / handover.
+content update --uri content://telephony/carriers \
+    --bind protocol:s:IP \
+    --bind roaming_protocol:s:IP \
+    --bind type:s:"default,ia,supl,dun,hipri" \
+    --where "numeric=\"63601\"" 2>/dev/null
+
+content update --uri content://telephony/carriers \
+    --bind protocol:s:IP \
+    --bind roaming_protocol:s:IP \
+    --bind type:s:"default,ia,supl,dun,hipri" \
+    --where "numeric=\"63602\"" 2>/dev/null
+
 # Audio & Cellular Coexistence Properties
 resetprop -n persist.vendor.audio.routing 1 2>/dev/null
 resetprop -n persist.vendor.audio.bt_route 1 2>/dev/null
