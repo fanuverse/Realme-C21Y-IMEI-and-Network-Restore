@@ -25,9 +25,11 @@ This utility restores cellular service across all three architectural layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 1. Userspace RIL & Audio Route (Framework / Settings / Audio)│
+│ 1. Userspace RIL, APN & Audio Route (Framework / Audio)     │
 │    - Patched libimpl-ril.so via APatch/Magisk module        │
-│    - Corrected audio_route.xml (SC2730 HPL EAR Sel fix)      │
+│    - Stock ROM & GSI SELinux context compatibility           │
+│    - In-call earpiece audio route (SC2730 HPL EAR Sel fix)   │
+│    - Patched apns-conf.xml (Initial Attach 'ia' & IPv4 fix)  │
 ├─────────────────────────────────────────────────────────────┤
 │ 2. Baseband Modem CP RTOS (Over-The-Air Air Interface)       │
 │    Patched l_modem:                                         │
@@ -127,6 +129,8 @@ After reboot, verify cellular operation:
 2. **Network Signal**: Both SIMs will show active signal bars (no 'X' or emergency indicators).
 3. **Voice & USSD**: Open Phone dialer and dial your balance inquiry code (e.g. `*804#`, `*123#`) or make a test phone call.
 4. **Mobile Data**: Turn off Wi-Fi; 4G/LTE mobile data will connect immediately with full internet access.
+5. **In-Call Voice Audio (GSI)**: Place or answer a voice call; speech is heard cleanly through the internal earpiece receiver without requiring headphones.
+6. **Handover & Mobility**: Commuting across cell towers preserves persistent Packet Switched (PS) data without silent detachment or "No Internet" routing blackholes.
 
 ---
 
