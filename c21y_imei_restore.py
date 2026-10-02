@@ -224,7 +224,7 @@ def patch_ril_library(template_path: str, imei1: str, imei2: str) -> bytes:
     return bytes(data)
 
 def package_apatch_module(output_zip: str, patched_ril: bytes, module_template_dir: str):
-    """Builds a flashable APatch/Magisk module zip containing the patched RIL binary."""
+    """Builds a flashable APatch/Magisk module zip containing the patched RIL binary and audio route fix."""
     with zipfile.ZipFile(output_zip, 'w', compression=zipfile.ZIP_DEFLATED) as z:
         # Copy skeleton files
         for fname in ["customize.sh", "post-fs-data.sh", "service.sh", "module.prop"]:
@@ -239,6 +239,16 @@ def package_apatch_module(output_zip: str, patched_ril: bytes, module_template_d
                     full_p = os.path.join(root, f)
                     rel_p = os.path.relpath(full_p, module_template_dir)
                     z.write(full_p, arcname=rel_p)
+        # Copy extra template assets (e.g. vendor/etc/audio_route.xml)
+        for sub in ["vendor", "system"]:
+            sub_path = os.path.join(module_template_dir, sub)
+            if os.path.exists(sub_path):
+                for root, _, files in os.walk(sub_path):
+                    for f in files:
+                        full_p = os.path.join(root, f)
+                        rel_p = os.path.relpath(full_p, module_template_dir)
+                        if not rel_p.endswith("libimpl-ril.so"):
+                            z.write(full_p, arcname=rel_p)
         # Write patched RIL binaries
         z.writestr("vendor/lib64/libimpl-ril.so", patched_ril)
         z.writestr("system/vendor/lib64/libimpl-ril.so", patched_ril)
@@ -316,6 +326,9 @@ def flash_to_device(adb_bin: str, output_dir: str):
         "mkdir -p /data/adb/modules/realme_c21y_imei_restore/system/vendor/lib64 && "
         "unzip -o /data/local/tmp/Realme-C21Y-IMEI-Restore.zip -d /data/adb/modules/realme_c21y_imei_restore && "
         "chmod -R 755 /data/adb/modules/realme_c21y_imei_restore && "
+        "chcon -R u:object_r:vendor_file:s0 /data/adb/modules/realme_c21y_imei_restore && "
+        "chcon -R u:object_r:vendor_configs_file:s0 /data/adb/modules/realme_c21y_imei_restore/vendor/etc 2>/dev/null; "
+        "chcon -R u:object_r:vendor_configs_file:s0 /data/adb/modules/realme_c21y_imei_restore/system/vendor/etc 2>/dev/null; "
         "sync'"
     )
     run_adb_cmd(adb_bin, ["shell", flash_cmd])

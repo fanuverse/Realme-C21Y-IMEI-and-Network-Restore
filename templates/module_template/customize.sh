@@ -13,6 +13,8 @@ set_perm $MODPATH/post-fs-data.sh 0 0 0755
 # Set correct SELinux contexts
 chcon -R u:object_r:vendor_file:s0 "$MODPATH/vendor" 2>/dev/null
 chcon -R u:object_r:vendor_file:s0 "$MODPATH/system/vendor" 2>/dev/null
+chcon -R u:object_r:vendor_configs_file:s0 "$MODPATH/vendor/etc" 2>/dev/null
+chcon -R u:object_r:vendor_configs_file:s0 "$MODPATH/system/vendor/etc" 2>/dev/null
 
 # Configure telephony settings for default data
 settings put global multi_sim_data_call 1 2>/dev/null
@@ -20,4 +22,4 @@ settings put global mobile_data1 1 2>/dev/null
 settings put global mobile_data 1 2>/dev/null
 
 ui_print "- Factory IMEIs restored to RIL layer."
-ui_print "- Permanent RIL patch installed successfully!"
+ui_print "- Permanent RIL & Audio Route patch installed successfully!"

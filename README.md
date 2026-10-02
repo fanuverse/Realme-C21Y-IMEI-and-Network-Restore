@@ -25,8 +25,9 @@ This utility restores cellular service across all three architectural layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 1. Userspace RIL (Android Framework / Settings Display)      │
-│    Patched libimpl-ril.so via APatch/Magisk module          │
+│ 1. Userspace RIL & Audio Route (Framework / Settings / Audio)│
+│    - Patched libimpl-ril.so via APatch/Magisk module        │
+│    - Corrected audio_route.xml (SC2730 HPL EAR Sel fix)      │
 ├─────────────────────────────────────────────────────────────┤
 │ 2. Baseband Modem CP RTOS (Over-The-Air Air Interface)       │
 │    Patched l_modem:                                         │
